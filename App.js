@@ -7,6 +7,7 @@ const App = () => {
   
   const [units, setUnits] = useState("metric");
   const [weather, setWeather] = useState(null);
+  const [errMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     
@@ -32,9 +33,16 @@ const App = () => {
 
  
   
-
+if (errMsg !== '') {
+  return (
+    <View style={styles.deniedLocation}>
+        <Text>{errMsg}</Text>
+    </View>
+  )
+}
   return (
     <View style={styles.appContainer}>
+      
       {weather && (
         <View>
           <View>
@@ -67,6 +75,11 @@ const styles = StyleSheet.create({
     fontSize:30,
     fontWeight:'bold',
     textAlign:'center'
+  },
+  deniedLocation:{
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center'
   }
 
 })
