@@ -1,20 +1,72 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View , Platform, StatusBar} from 'react-native'
+import React, {useState, useEffect} from 'react'
+import * as Location from 'expo-location';
+import { getWeatherData } from './src/services/weatherService';
+import Forecast from './src/components/ForecastComponent/Forecast';
+const App = () => {
+  
+  const [units, setUnits] = useState("metric");
+  const [weather, setWeather] = useState(null);
 
-export default function App() {
+  useEffect(() => {
+    
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let currentlocation = await Location.getCurrentPositionAsync({});
+     
+      const loc = currentlocation.coords;
+      const query = {lat:loc.latitude, lon:loc.longitude}
+
+      await getWeatherData({ ...query, units }).then((data) => {
+        setWeather(data);
+      console.log(JSON.stringify(data))
+      });      
+    
+    })();
+  }, []);
+
+ 
+  
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={styles.appContainer}>
+      {weather && (
+        <View>
+          <View>
+            <Text style={styles.Location}>{weather.name}, {weather.sys.country}</Text>
+            <Text style={styles.temperature}>{weather.main.temp}°</Text>
+          </View>
+            <Forecast title={'Hourly Forecast'} data={weather.hourly} />
+            <Forecast title={'Daily Forecast'} data={weather.daily} />
+          </View>
+      )}
+      
     </View>
-  );
+  )
 }
 
+export default App
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  appContainer:{
+    padding:10,
+    flex:1,
+    paddingTop: Platform.OS == 'android' ? StatusBar.currentHeight : 0
   },
-});
+  Location:{
+    fontSize:18,
+    fontWeight:'bold',
+    textAlign:'center'
+  },
+  temperature:{
+    fontSize:30,
+    fontWeight:'bold',
+    textAlign:'center'
+  }
+
+})
